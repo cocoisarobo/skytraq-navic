@@ -4,15 +4,16 @@ An Arduino library (WIP) for communicating with GNSS modules based on the Skytra
 
 ## Current Features
 
-🛰️ Configure GNSS constellation types (GPS, GLONASS, Galileo, BeiDou, NavIC)
+Configure GNSS constellation types (GPS, GLONASS, Galileo, BeiDou, NavIC)
 
-🌐 SBAS system configuration (WAAS, EGNOS, MSAS, GAGAN, SDCM, BDSBAS)
+SBAS system configuration (WAAS, EGNOS, MSAS, GAGAN, SDCM, BDSBAS)
 
-🗾 QZSS satellite system support
+QZSS satellite system support
 
-✅ ACK/NACK response handling
+ACK/NACK response handling
 
-🔧 Easy-to-use Arduino interface
+Easy-to-use Arduino interface
+
 
 ## Hardware set-up
 
