@@ -8,6 +8,136 @@ void Skytraq::begin()
   Serial1.begin(baud, SERIAL_8N1, _rx, _tx);
 }
 
+bool Skytraq::systemRestart(uint8_t mode, uint16_t year, uint8_t month, uint8_t day,
+                            uint8_t hour, uint8_t minute, uint8_t second, int16_t lat, int16_t lon, int16_t alt)
+{
+  uint8_t payload[15] = {0x01,
+                         mode,
+                         (year >> 8) & 0xFF,
+                         year & 0xFF,
+                         month,
+                         day,
+                         hour,
+                         minute,
+                         second,
+                         (lat >> 8) & 0xFF,
+                         lat & 0xFF,
+                         (lon >> 8) & 0xFF,
+                         lon & 0xFF,
+                         (alt >> 8) & 0xFF,
+                         alt & 0xFF};
+
+  sendCommand(payload, sizeof(payload));
+
+  delay(100);
+
+  return getAck();
+}
+
+bool Skytraq::setFactoryDefault()
+{
+  uint8_t payload[2] = {0x04, 0x01};
+  sendCommand(payload, sizeof(payload));
+
+  delay(100);
+
+  return getAck();
+}
+
+bool Skytraq::configSystemPowerMode(uint8_t mode, uint8_t attr)
+{
+  if (mode > 1)
+    return false;
+
+  uint8_t payload[3] = {0x0C, mode, attr};
+  sendCommand(payload, sizeof(payload));
+
+  delay(100);
+
+  return getAck();
+}
+
+bool Skytraq::configSysPosRate(PositionRate posRate, uint8_t attr)
+{
+
+  uint8_t payload[3] = {0x0E, posRate, attr};
+  sendCommand(payload, sizeof(payload));
+
+  delay(100);
+
+  return getAck();
+}
+
+bool Skytraq::configPosPinningParams(uint16_t p_speed, uint16_t p_cnt, uint16_t up_speed, uint16_t up_cnt, uint16_t up_dist, uint8_t attr)
+{
+  uint8_t payload[12] = {0x3B,
+                         (p_speed >> 8) & 0xFF,
+                         p_speed & 0xFF,
+                         (p_cnt >> 8) & 0xFF,
+                         p_cnt & 0xFF,
+                         (up_speed >> 8) & 0xFF,
+                         up_speed & 0xFF,
+                         (up_cnt >> 8) & 0xFF,
+                         up_cnt & 0xFF,
+                         (up_dist >> 8) & 0xFF,
+                         up_dist & 0xFF,
+                         attr};
+
+  sendCommand(payload, sizeof(payload));
+
+  delay(100);
+
+  return getAck();
+}
+
+bool Skytraq::configPosPinning(PosPinning mode, uint8_t attr)
+{
+  if (mode > 2)
+    return false;
+
+  uint8_t payload[3] = {0x39, mode, attr};
+  sendCommand(payload, sizeof(payload));
+
+  delay(100);
+
+  return getAck();
+}
+
+bool Skytraq::configDOPMask(DOPmode mode, uint16_t pdop, uint16_t hdop, uint16_t vdop, uint8_t attr)
+{
+  if (mode > 4)
+    return false;
+
+  uint8_t payload[9] = {0x2A,
+                        mode,
+                        (pdop >> 8) & 0xFF,
+                        pdop & 0xFF,
+                        (hdop >> 8) & 0xFF,
+                        hdop & 0xFF,
+                        (vdop >> 8) & 0xFF,
+                        vdop & 0xFF,
+                        attr};
+
+  sendCommand(payload, sizeof(payload));
+
+  delay(100);
+
+  return getAck();
+}
+
+bool Skytraq::configNMEATalkerID(NMEAtalkerID id, uint8_t attr)
+{
+  if (id > 2)
+    return false;
+
+  uint8_t payload[3] = {0x4B, id, attr};
+  sendCommand(payload, sizeof(payload));
+
+  delay(100);
+
+  return getAck();
+}
+
 bool Skytraq::setConstellation(uint8_t constid, uint8_t attr)
 {
   uint8_t payload[5] = {0x64, 0x19, 0x00, constid, attr};
