@@ -8,8 +8,8 @@ void Skytraq::begin()
   Serial1.begin(baud, SERIAL_8N1, _rx, _tx);
 }
 
-bool Skytraq::systemRestart(uint8_t mode, uint16_t year, uint8_t month, uint8_t day,
-                            uint8_t hour, uint8_t minute, uint8_t second, int16_t lat, int16_t lon, int16_t alt)
+bool Skytraq::systemRestart(RestartMode mode, uint16_t year, uint8_t month, 
+  uint8_t day,uint8_t hour, uint8_t minute, uint8_t second, int16_t lat, int16_t lon, int16_t alt)
 {
   uint8_t payload[15] = {0x01,
                          mode,
