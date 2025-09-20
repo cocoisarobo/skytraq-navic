@@ -8,24 +8,15 @@ void Skytraq::begin()
   Serial1.begin(baud, SERIAL_8N1, _rx, _tx);
 }
 
-bool Skytraq::systemRestart(RestartMode mode, uint16_t year, uint8_t month, 
-  uint8_t day,uint8_t hour, uint8_t minute, uint8_t second, int16_t lat, int16_t lon, int16_t alt)
+bool Skytraq::systemRestart(RestartMode mode, uint16_t year, uint8_t month,
+                            uint8_t day, uint8_t hour, uint8_t minute, uint8_t second, int16_t lat, int16_t lon, int16_t alt)
 {
-  uint8_t payload[15] = {0x01,
-                         mode,
-                         (year >> 8) & 0xFF,
-                         year & 0xFF,
-                         month,
-                         day,
-                         hour,
-                         minute,
-                         second,
-                         (lat >> 8) & 0xFF,
-                         lat & 0xFF,
-                         (lon >> 8) & 0xFF,
-                         lon & 0xFF,
-                         (alt >> 8) & 0xFF,
-                         alt & 0xFF};
+  uint8_t payload[15] = {0x01, mode,
+                         (year >> 8) & 0xFF, year & 0xFF,
+                         month, day, hour, minute, second,
+                         (lat >> 8) & 0xFF, lat & 0xFF,
+                         (lon >> 8) & 0xFF, lon & 0xFF,
+                         (alt >> 8) & 0xFF, alt & 0xFF};
 
   sendCommand(payload, sizeof(payload));
 
@@ -103,9 +94,12 @@ bool Skytraq::configPosPinning(PosPinning mode, uint8_t attr)
   return getAck();
 }
 
-bool Skytraq::configDOPMask(DOPmode mode, uint16_t pdop, uint16_t hdop, uint16_t vdop, uint8_t attr)
+bool Skytraq::configDOPMask(DOPmode mode, uint16_t pdop, uint16_t hdop, uint16_t gdop, uint8_t attr)
 {
-  if (mode > 4)
+  if (mode > GDOP_ONLY)
+    return false;
+
+  if (pdop < 5 || pdop > 300 || hdop < 5 || hdop > 300 || gdop < 5 || gdop > 300)
     return false;
 
   uint8_t payload[9] = {0x2A,
@@ -114,8 +108,8 @@ bool Skytraq::configDOPMask(DOPmode mode, uint16_t pdop, uint16_t hdop, uint16_t
                         pdop & 0xFF,
                         (hdop >> 8) & 0xFF,
                         hdop & 0xFF,
-                        (vdop >> 8) & 0xFF,
-                        vdop & 0xFF,
+                        (gdop >> 8) & 0xFF,
+                        gdop & 0xFF,
                         attr};
 
   sendCommand(payload, sizeof(payload));
@@ -192,28 +186,31 @@ bool Skytraq::configureQZSS(uint8_t enable, uint8_t channels, uint8_t attr)
 
 bool Skytraq::sendCommand(uint8_t *payload, size_t len)
 {
+  if (len + 7 > sizeof(_packetBuffer))
+    return false;
+
   uint8_t checksum = calcChecksum(payload, len);
 
-  uint8_t packet[32];
+  // uint8_t packet[32];
   size_t idx = 0;
 
-  packet[idx++] = 0xA0;
-  packet[idx++] = 0xA1;
+  _packetBuffer[idx++] = 0xA0;
+  _packetBuffer[idx++] = 0xA1;
 
-  packet[idx++] = (len >> 8) & 0xFF;
-  packet[idx++] = len & 0xFF;
+  _packetBuffer[idx++] = (len >> 8) & 0xFF;
+  _packetBuffer[idx++] = len & 0xFF;
 
   for (size_t i = 0; i < len; i++)
   {
-    packet[idx++] = payload[i];
+    _packetBuffer[idx++] = payload[i];
   }
 
-  packet[idx++] = checksum;
+  _packetBuffer[idx++] = checksum;
 
-  packet[idx++] = 0x0D;
-  packet[idx++] = 0x0A;
+  _packetBuffer[idx++] = 0x0D;
+  _packetBuffer[idx++] = 0x0A;
 
-  Serial1.write(packet, idx);
+  Serial1.write(_packetBuffer, idx);
 
   return true;
 }
@@ -231,14 +228,14 @@ uint8_t Skytraq::calcChecksum(uint8_t *msg, size_t len)
 bool Skytraq::getAck()
 {
   unsigned long startTime = millis();
-  const unsigned long timeout = 5000;
+  // const unsigned long _timeout = 5000;
 
   uint8_t state = 0; // 0=sync1, 1=sync2, 2=len_h, 3=len_l, 4=payload, 5=end
   uint16_t expectedLen = 0;
   uint16_t bytesRead = 0;
   uint8_t ackNack = 0;
 
-  while (millis() - startTime < timeout)
+  while (millis() - startTime < _timeout)
   {
     if (!Serial1.available())
     {

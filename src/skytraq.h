@@ -157,7 +157,7 @@ public:
 
   bool configPosPinning(PosPinning mode = POS_PINNING_DEFAULT, uint8_t attr = CONFIG_ATTR_UPDATE_TO_SRAM);
 
-  bool configDOPMask(DOPmode mode, uint16_t pdop, uint16_t hdop, uint16_t vdop, uint8_t attr = CONFIG_ATTR_UPDATE_TO_SRAM);
+  bool configDOPMask(DOPmode mode, uint16_t pdop, uint16_t hdop, uint16_t gdop, uint8_t attr = CONFIG_ATTR_UPDATE_TO_SRAM);
 
   bool configNMEATalkerID(NMEAtalkerID id, uint8_t attr = CONFIG_ATTR_UPDATE_TO_SRAM);
 
@@ -167,9 +167,14 @@ public:
 
   bool configureQZSS(uint8_t enable, uint8_t channels = 1, uint8_t attr = 0);
 
+  void setTimeout(uint32_t ms) { _timeout = ms; }
+  uint32_t getTimeout() const { return _timeout; }
+
 private:
   uint8_t _tx, _rx;
   uint32_t baud;
+  uint8_t _packetBuffer[32];
+  uint32_t _timeout = 5000;
 
   bool sendCommand(uint8_t *payload, size_t len);
   uint8_t calcChecksum(uint8_t *msg, size_t len);
